@@ -14,6 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 @SpringBatchTest
 @SpringBootTest
 @ExtendWith(OutputCaptureExtension.class)
@@ -33,16 +36,15 @@ class SpringBatchApplicationTests {
     @Test
     void testJobExecution(CapturedOutput output) throws Exception {
         // given
-        JobParameters jobParameters = this.jobLauncherTestUtils.getUniqueJobParametersBuilder()
-                .addString("input.file", "/some/input/file")
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("input.file", "src/main/resources/billing-2023-01.csv")
                 .toJobParameters();
 
         // when
-        // ** Update the following line:
         JobExecution jobExecution = this.jobLauncherTestUtils.launchJob(jobParameters);
 
         // then
-        Assertions.assertTrue(output.getOut().contains("processing billing information from file /some/input/file"));
         Assertions.assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+        Assertions.assertTrue(Files.exists(Paths.get("staging", "billing-2023-01.csv")));
     }
 }
